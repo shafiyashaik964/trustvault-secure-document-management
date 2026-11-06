@@ -1,0 +1,183 @@
+.tv-header {
+  width: 100%;
+  min-height: 68px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 12px 25px;
+
+  background: rgba(5, 22, 42, 0.96);
+
+  border-bottom: 1px solid rgba(38, 193, 225, 0.2);
+
+  color: #eaf7ff;
+}
+
+/* SEARCH */
+
+.tv-header-search {
+  width: min(380px, 45%);
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0 13px;
+
+  background: #102944;
+
+  border: 1px solid rgba(83, 169, 204, 0.2);
+  border-radius: 9px;
+}
+
+.tv-search-icon {
+  color: #54d9ed;
+  font-size: 22px;
+}
+
+.tv-header-search input {
+  width: 100%;
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  color: #ffffff;
+
+  font-size: 12px;
+}
+
+.tv-header-search input::placeholder {
+  color: #88a8c0;
+}
+
+/* ACTIONS */
+
+.tv-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.tv-security-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #9fc4d8;
+
+  font-size: 11px;
+}
+
+.tv-status-dot {
+  width: 8px;
+  height: 8px;
+
+  background: #20d6a0;
+  border-radius: 50%;
+
+  box-shadow: 0 0 9px rgba(32, 214, 160, 0.7);
+}
+
+.tv-notification-button {
+  position: relative;
+
+  width: 37px;
+  height: 37px;
+
+  background: #102944;
+  border: 1px solid rgba(74, 170, 207, 0.25);
+  border-radius: 9px;
+
+  color: #eaf7ff;
+  font-size: 19px;
+
+  cursor: pointer;
+}
+
+.tv-notification-button:hover {
+  background: #16456a;
+}
+
+.tv-notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+
+  min-width: 17px;
+  height: 17px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 2px;
+
+  background: #ef4444;
+  border-radius: 50%;
+
+  color: #ffffff;
+  font-size: 9px;
+}
+
+.tv-header-user {
+  max-width: 150px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: #c9e4f5;
+  font-size: 12px;
+}
+
+.tv-header-logout {
+  padding: 10px 18px;
+
+  background: linear-gradient(
+    135deg,
+    #a52336,
+    #771b2b
+  );
+
+  border: 1px solid rgba(255, 100, 120, 0.25);
+  border-radius: 8px;
+
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.tv-header-logout:hover {
+  background: #c02c42;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+  .tv-header {
+    flex-wrap: wrap;
+    padding: 12px;
+  }
+
+  .tv-header-search {
+    width: 100%;
+  }
+
+  .tv-header-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .tv-security-status {
+    display: none;
+  }
+}

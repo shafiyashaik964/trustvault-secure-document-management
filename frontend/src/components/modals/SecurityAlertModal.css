@@ -1,0 +1,121 @@
+.tv-security-modal {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  padding: 35px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 18px;
+  background: #101c30;
+  color: #e2e8f0;
+  text-align: center;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45);
+}
+
+.tv-security-close {
+  position: absolute;
+  top: 15px;
+  right: 17px;
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.tv-security-icon {
+  display: grid;
+  place-items: center;
+  width: 55px;
+  height: 55px;
+  margin: 0 auto 17px;
+  border: 1px solid #38bdf8;
+  border-radius: 50%;
+  color: #38bdf8;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.severity-critical .tv-security-icon,
+.severity-high .tv-security-icon {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+.severity-warning .tv-security-icon {
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.tv-security-label {
+  color: #38bdf8;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.tv-security-modal h2 {
+  margin: 12px 0;
+  font-size: 23px;
+}
+
+.tv-security-message {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.tv-security-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 25px 0;
+  padding: 15px;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.55);
+  text-align: left;
+}
+
+.tv-security-info div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.tv-security-info span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.tv-security-info strong {
+  color: #e2e8f0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.tv-security-button {
+  width: 100%;
+  padding: 11px;
+  border: 0;
+  border-radius: 9px;
+  background: #0891b2;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tv-security-button:hover {
+  background: #0e7490;
+}
+
+@media (max-width: 480px) {
+  .tv-security-modal {
+    padding: 25px 20px;
+  }
+
+  .tv-security-info {
+    grid-template-columns: 1fr;
+  }
+}

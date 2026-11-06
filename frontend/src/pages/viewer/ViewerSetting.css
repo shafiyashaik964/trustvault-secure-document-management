@@ -1,0 +1,165 @@
+
+.viewer-settings-layout {
+  min-height: 100vh;
+  display: flex;
+  background: #071426;
+  color: #eaf2fb;
+}
+
+.viewer-settings-main {
+  flex: 1;
+  min-width: 0;
+  padding: 32px;
+  overflow-x: hidden;
+}
+
+.viewer-settings-header {
+  margin-bottom: 28px;
+}
+
+.viewer-settings-eyebrow {
+  color: #36c6c2;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin: 0 0 8px;
+}
+
+.viewer-settings-header h1 {
+  color: #f4f8ff;
+  font-size: 28px;
+  margin: 0 0 8px;
+}
+
+.viewer-settings-header p:last-child {
+  color: #9aacc1;
+  margin: 0;
+  font-size: 14px;
+}
+
+.viewer-settings-card {
+  max-width: 850px;
+  padding: 28px;
+  background: #10233b;
+  border: 1px solid #203b57;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.viewer-settings-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.viewer-settings-avatar {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #123f56;
+  border: 1px solid #2b9b9b;
+  color: #63e0d5;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.viewer-settings-profile h2 {
+  margin: 0 0 8px;
+  color: #f4f8ff;
+  font-size: 20px;
+}
+
+.viewer-settings-role {
+  display: inline-block;
+  color: #65d8d0;
+  background: rgba(54, 198, 194, 0.12);
+  border: 1px solid rgba(54, 198, 194, 0.25);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.viewer-settings-divider {
+  height: 1px;
+  background: #29415a;
+  margin: 26px 0;
+}
+
+.viewer-settings-card h3 {
+  color: #f4f8ff;
+  font-size: 17px;
+  margin: 0 0 22px;
+}
+
+.viewer-settings-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.viewer-settings-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: #0b1b2e;
+  border: 1px solid #203b57;
+  border-radius: 10px;
+  min-width: 0;
+}
+
+.viewer-settings-info span {
+  color: #91a7bd;
+  font-size: 12px;
+}
+
+.viewer-settings-info strong {
+  color: #eaf2fb;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  text-transform: capitalize;
+}
+
+.viewer-settings-info .viewer-settings-status {
+  color: #65d8a5;
+}
+
+.viewer-settings-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 26px;
+  padding: 16px;
+  border-radius: 10px;
+  background: rgba(54, 198, 194, 0.08);
+  border: 1px solid rgba(54, 198, 194, 0.2);
+}
+
+.viewer-settings-note span {
+  font-size: 18px;
+}
+
+.viewer-settings-note p {
+  color: #a9bdcf;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .viewer-settings-main {
+    padding: 22px 16px;
+  }
+
+  .viewer-settings-card {
+    padding: 20px;
+  }
+
+  .viewer-settings-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
