@@ -1,5 +1,7 @@
+
 import uuid
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import (
     APIRouter,
@@ -10,7 +12,7 @@ from fastapi import (
     Form
 )
 
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
@@ -25,6 +27,12 @@ from app.security.dependencies import (
 )
 
 from app.services.audit_service import create_audit_log
+
+from app.services.storage_service import (
+    upload_file,
+    download_file,
+    delete_file
+)
 
 
 router = APIRouter(
@@ -137,6 +145,7 @@ def log_document_event(
 # --------------------------------------------------
 # 1. DOCUMENT UPLOAD API
 # DOCUMENT OWNER ONLY
+# USES PRIVATE SUPABASE STORAGE
 # --------------------------------------------------
 
 @router.post("/upload")
@@ -146,7 +155,6 @@ async def upload_document(
     category: str = Form("General"),
     file: UploadFile = File(...),
 
-    # SECURITY: Only document owners can upload.
     current_user: User = Depends(require_document_owner),
 
     db: Session = Depends(get_db)
@@ -199,13 +207,12 @@ async def upload_document(
         f"{uuid.uuid4()}{ALLOWED_TYPES[content_type]}"
     )
 
-    STORAGE_DIR.mkdir(
-        parents=True,
-        exist_ok=True
+    # Unique object path inside private Supabase bucket.
+    object_path = (
+        f"{current_user.id}/{stored_filename}"
     )
 
-    file_path = STORAGE_DIR / stored_filename
-
+    uploaded_to_storage = False
     committed = False
 
     try:
@@ -240,11 +247,16 @@ async def upload_document(
                 detail="File content does not match the selected file type"
             )
 
-        # Save file using generated UUID filename.
-        with open(file_path, "wb") as saved_file:
-            saved_file.write(file_content)
+        # Upload to private Supabase Storage.
+        upload_file(
+            object_path,
+            file_content,
+            content_type
+        )
 
-        # Create document database record.
+        uploaded_to_storage = True
+
+        # Create database document record.
         new_document = Document(
             title=title,
             description=description,
@@ -253,7 +265,7 @@ async def upload_document(
                 file.filename or "uploaded_file"
             ).name[:255],
             stored_filename=stored_filename,
-            storage_path=str(file_path),
+            storage_path=object_path,
             file_size=len(file_content),
             content_type=content_type,
             owner_id=current_user.id
@@ -271,7 +283,7 @@ async def upload_document(
             action="DOCUMENT_UPLOAD",
             outcome="SUCCESS",
             document_id=new_document.id,
-            details="Document uploaded successfully"
+            details="Document uploaded to private Supabase Storage"
         )
 
         # Save document and audit entry together.
@@ -295,9 +307,15 @@ async def upload_document(
 
             db.rollback()
 
-            # Remove file if database transaction failed.
-            if file_path.exists():
-                file_path.unlink()
+            # Remove cloud object if database transaction failed.
+            if uploaded_to_storage:
+
+                try:
+                    delete_file(object_path)
+
+                except Exception:
+                    # Preserve the original database error.
+                    pass
 
         raise
 
@@ -359,6 +377,7 @@ def list_documents(
 
 # --------------------------------------------------
 # 3. SECURE DOCUMENT DOWNLOAD API
+# SUPPORTS SUPABASE AND LEGACY LOCAL FILES
 # --------------------------------------------------
 
 @router.get("/{document_id}/download")
@@ -368,10 +387,7 @@ def download_document(
     db: Session = Depends(get_db)
 ):
 
-    # ----------------------------------------------
-    # Validate document ID
-    # ----------------------------------------------
-
+    # Validate document ID.
     try:
 
         document_uuid = uuid.UUID(document_id)
@@ -391,10 +407,7 @@ def download_document(
             detail="Invalid document ID"
         )
 
-    # ----------------------------------------------
-    # Find document
-    # ----------------------------------------------
-
+    # Find document.
     document = db.query(Document).filter(
         Document.id == document_uuid
     ).first()
@@ -414,10 +427,7 @@ def download_document(
             detail="Document not found"
         )
 
-    # ----------------------------------------------
-    # Check permission on every request
-    # ----------------------------------------------
-
+    # Check current permission on every request.
     try:
 
         check_document_access(
@@ -441,68 +451,111 @@ def download_document(
 
         raise
 
-    # ----------------------------------------------
-    # Validate storage path
-    # ----------------------------------------------
+    # Identify new Supabase objects.
+    expected_object_path = (
+        f"{document.owner_id}/{document.stored_filename}"
+    )
 
-    file_path = Path(
-        document.storage_path
-    ).resolve()
+    if document.storage_path == expected_object_path:
 
-    if not file_path.is_relative_to(STORAGE_DIR):
+        # Retrieve document from private Supabase Storage.
+        try:
 
-        log_document_event(
-            db=db,
-            current_user=current_user,
-            action="DOCUMENT_DOWNLOAD",
-            outcome="FAILED",
-            document_id=document.id,
-            details="Invalid document storage location"
-        )
+            file_content = download_file(
+                document.storage_path
+            )
 
-        raise HTTPException(
-            status_code=500,
-            detail="Invalid document storage location"
-        )
+        except Exception:
 
-    if not file_path.is_file():
+            log_document_event(
+                db=db,
+                current_user=current_user,
+                action="DOCUMENT_DOWNLOAD",
+                outcome="FAILED",
+                document_id=document.id,
+                details="Supabase document retrieval failed"
+            )
 
-        log_document_event(
-            db=db,
-            current_user=current_user,
-            action="DOCUMENT_DOWNLOAD",
-            outcome="FAILED",
-            document_id=document.id,
-            details="Stored document file not found"
-        )
+            raise HTTPException(
+                status_code=502,
+                detail="Unable to retrieve document from secure storage"
+            )
 
-        raise HTTPException(
-            status_code=404,
-            detail="Stored document file not found"
-        )
+    else:
 
-    # ----------------------------------------------
-    # Record successful authorized download request
-    # ----------------------------------------------
+        # Backward compatibility for existing local documents.
+        try:
 
+            file_path = Path(
+                document.storage_path
+            ).resolve()
+
+            if not file_path.is_relative_to(
+                STORAGE_DIR.resolve()
+            ):
+
+                raise HTTPException(
+                    status_code=500,
+                    detail="Invalid document storage location"
+                )
+
+            if not file_path.is_file():
+
+                raise HTTPException(
+                    status_code=404,
+                    detail="Stored document file not found"
+                )
+
+            file_content = file_path.read_bytes()
+
+        except HTTPException:
+
+            log_document_event(
+                db=db,
+                current_user=current_user,
+                action="DOCUMENT_DOWNLOAD",
+                outcome="FAILED",
+                document_id=document.id,
+                details="Local document unavailable or invalid"
+            )
+
+            raise
+
+        except OSError:
+
+            log_document_event(
+                db=db,
+                current_user=current_user,
+                action="DOCUMENT_DOWNLOAD",
+                outcome="FAILED",
+                document_id=document.id,
+                details="Local document could not be read"
+            )
+
+            raise HTTPException(
+                status_code=404,
+                detail="Stored document file not found"
+            )
+
+    # Record successful authorized download.
     log_document_event(
         db=db,
         current_user=current_user,
         action="DOCUMENT_DOWNLOAD",
         outcome="SUCCESS",
         document_id=document.id,
-        details="Authorized document download requested"
+        details="Authorized document download completed"
     )
 
-    # ----------------------------------------------
-    # Return file through authenticated backend
-    # ----------------------------------------------
-
-    return FileResponse(
-        path=file_path,
+    # Return file through authenticated backend.
+    return Response(
+        content=file_content,
         media_type=document.content_type,
-        filename=document.original_filename,
         headers={
+            "Content-Disposition": (
+                "attachment; filename*=UTF-8''"
+                + quote(document.original_filename, safe="")
+            ),
             "Cache-Control": "private, no-store",
             "X-Content-Type-Options": "nosniff"
         }

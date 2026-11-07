@@ -10,3 +10,4 @@ email-validator
 python-dotenv
 pytest
 httpx
+supabase==2.34.1
